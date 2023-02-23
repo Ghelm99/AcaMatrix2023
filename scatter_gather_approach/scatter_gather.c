@@ -56,6 +56,12 @@ void calculate_product(int *a, int *b, int *c, int m, int n, int p) {
 /* Function that prints the result matrix */
 void print_results(int c[M][K], double min_time, double max_time, double avg_time) {
 
+    for (int i = 0; i < M; i++) {
+        for (int j = 0; j < K; j++) {
+            printf("c[%d][%d]:%d\n", i, j, c[i][j]);
+        }
+    }
+
     printf("Min computation time: %f\n", min_time);
     printf("Max computation time: %f\n", max_time);
     printf("Avg computation time: %f\n", avg_time);
@@ -66,7 +72,7 @@ int main(int argc, char **argv) {
 
     /* Matrices and variables definition */
     static int a[M][N], b[N][K], c[M][K];
-    int size, rank, i, j;
+    int size, rank;
     double my_time, max_time, min_time, avg_time;
 
     MPI_Status status;
@@ -89,14 +95,14 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    int *local_a = (int *) malloc(rows * M * sizeof(int));
+    int *local_a = (int *) malloc(rows * N * sizeof(int));
     int *local_c = (int *) malloc(rows * K * sizeof(int));
 
     /* Barrier used to synchronize every process before "true computation" starts */
     MPI_Barrier(MPI_COMM_WORLD);
     my_time = MPI_Wtime();
 
-    MPI_Scatter(a, rows * M, MPI_INT, local_a, rows * M, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(a, rows * N, MPI_INT, local_a, rows * N, MPI_INT, 0, MPI_COMM_WORLD);
     calculate_product(local_a, *b, local_c, rows, N, K);
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Gather(local_c, rows * K, MPI_INT, c, rows * K, MPI_INT, 0, MPI_COMM_WORLD);
@@ -118,8 +124,6 @@ int main(int argc, char **argv) {
         print_results(c, min_time, max_time, avg_time);
         printf("\n");
     }
-
-    MPI_Barrier(MPI_COMM_WORLD);
 
     printf("Process %d computation time: %f\n", rank, my_time);
 

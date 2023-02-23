@@ -42,7 +42,7 @@ void calculate_product(int process_rank, int process_size, int a[M][N], int b[N]
     for (int i = process_rank; i < M; i = i + process_size) {
         for (int k = 0; k < N; k++) {
             for (int j = 0; j < K; j++) {
-                c[i][j] = c[i][j] + a[i][k]*b[k][j];
+                c[i][j] = c[i][j] + a[i][k] * b[k][j];
             }
         }
     }
@@ -50,6 +50,12 @@ void calculate_product(int process_rank, int process_size, int a[M][N], int b[N]
 
 /* Function that prints the result matrix */
 void print_results(int c[M][K], double min_time, double max_time, double avg_time) {
+
+    for (int i = 0; i < M; i++) {
+        for (int j = 0; j < K; j++) {
+            printf("c[%d][%d]:%d\n", i, j, c[i][j]);
+        }
+    }
 
     printf("Min computation time: %f\n", min_time);
     printf("Max computation time: %f\n", max_time);
@@ -115,8 +121,6 @@ int main(int argc, char **argv) {
         print_results(c, min_time, max_time, avg_time);
         printf("\n");
     }
-
-    MPI_Barrier(MPI_COMM_WORLD);
 
     printf("Process %d computation time: %f\n", rank, my_time);
 

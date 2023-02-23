@@ -7,7 +7,7 @@
  * The main complexity of any parallel application is figure out how to assign chunks to processes.
  * In the following code the work is divided depending on the number of C columns.
  * For instance, if C has 4 columns and the program is run with 2 processes, master and worker (with ranks 0 and 1),
- * master will compute columns 0 and 2, worker columns 1 and 3.
+ * master will compute columns 0 and 2, worker columns 1 and 4.
 */
 
 #define M 3000
@@ -42,7 +42,7 @@ void calculate_product(int process_rank, int process_size, int a[M][N], int b[N]
     for (int i = 0; i < M; i++) {
         for (int j = process_rank; j < K; j = j + process_size) {
             for (int k = 0; k < N; k++) {
-                c[i][j] = c[i][j] + a[i][k]*b[k][j];
+                c[i][j] += a[i][k] * b[k][j];
             }
         }
     }
@@ -51,6 +51,13 @@ void calculate_product(int process_rank, int process_size, int a[M][N], int b[N]
 /* Function that prints the result matrix */
 void print_results(int c[M][K], double min_time, double max_time, double avg_time) {
 
+    for (int i = 0; i < M; i++) {
+        for (int j = 0; j < K; j++) {
+            printf("c[%d][%d]:%d\n", i, j, c[i][j]);
+        }
+    }
+
+//  printf("Matrix C, %dx%d \n", i, j);
     printf("Min computation time: %f\n", min_time);
     printf("Max computation time: %f\n", max_time);
     printf("Avg computation time: %f\n", avg_time);
@@ -80,8 +87,8 @@ int main(int argc, char **argv) {
 
     /* Workers send their results to the master */
     if (rank != 0) {
-        for (i = rank; i < M; i = i + size) {
-            for (j = 0; j < K; j++) {
+        for (j = rank; j < K; j = j + size) {
+            for (i = 0; i < M; i++) {
                 MPI_Send(&c[i][j], 1, MPI_INT, 0, i * K + j, MPI_COMM_WORLD);
             }
         }
@@ -90,8 +97,8 @@ int main(int argc, char **argv) {
     /* Master receives the results from workers */
     if (rank == 0) {
         for (int process = 1; process < size; process++) {
-            for (i = process; i < M; i = i + size) {
-                for (j = 0; j < K; j++) {
+            for (j = process; j < K; j = j + size) {
+                for (i = 0; i < M; i++) {
                     MPI_Recv(&c[i][j], 1, MPI_INT, process, i * K + j, MPI_COMM_WORLD, &status);
                 }
             }
@@ -115,8 +122,6 @@ int main(int argc, char **argv) {
         print_results(c, min_time, max_time, avg_time);
         printf("\n");
     }
-
-    MPI_Barrier(MPI_COMM_WORLD);
 
     printf("Process %d computation time: %f\n", rank, my_time);
 

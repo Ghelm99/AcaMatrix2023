@@ -45,8 +45,13 @@ void calculate_product(int a[M][N], int b[N][K], int c[M][K]) {
 /* Function that prints the result matrix */
 void print_result(int c[M][K], double t_start, double t_finish) {
 
+    for (int i = 0; i < M; i++) {
+        for (int j = 0; j < K; j++) {
+            printf("c[%d][%d]:%d\n", i, j, c[i][j]);
+        }
+    }
+
     printf("\n");
-    printf("Matrix C, %dx%d \n", i, j);
     printf("Result computed in %f seconds. \n", (t_finish - t_start) / CLOCKS_PER_SEC);
 }
 
